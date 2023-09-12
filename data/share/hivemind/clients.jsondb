@@ -1,0 +1,22 @@
+{
+    "clients": [
+        {
+            "client_id": 1,
+            "description": "",
+            "api_key": "77393752def9983dfcb967e5d52788ca",
+            "name": "HiveMind-Node-0",
+            "last_seen": -1,
+            "is_admin": false,
+            "crypto_key": "099c7cdda9e02300",
+            "password": "8b86f1b6a0ac451224f2921e80127e9b",
+            "blacklist": {
+                "messages": [],
+                "skills": [],
+                "intents": []
+            },
+            "allowed_types": [
+                "recognizer_loop:utterance"
+            ]
+        }
+    ]
+}

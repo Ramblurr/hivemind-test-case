@@ -1,0 +1,68 @@
+---
+version: "3.9"
+
+x-podman:
+  &podman
+  userns_mode: keep-id
+  security_opt:
+    - "label=disable"
+
+x-logging:
+  &default-logging
+  driver: json-file
+  options:
+    mode: non-blocking
+    max-buffer-size: 4m
+    max-size: "200m"
+    max-file: "1"
+
+services:
+  ovos_skill_fallback_unknown:
+    <<: *podman
+    container_name: test_ovos_skill_fallback_unknown
+    hostname: ovos_skill_fallback_unknown
+    restart: unless-stopped
+    image: docker.io/smartgic/ovos-skill-fallback-unknown:${VERSION}
+    logging: *default-logging
+    pull_policy: always
+    environment:
+      TZ: $TZ
+    network_mode: host
+    volumes:
+      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+      - ${TMP_FOLDER}:/tmp/mycroft
+    depends_on:
+      - ovos_core
+
+  ovos_skill_hello_world:
+    <<: *podman
+    container_name: test_ovos_skill_hello_world
+    hostname: ovos_skill_hello_world
+    restart: unless-stopped
+    image: docker.io/smartgic/ovos-skill-hello-world:${VERSION}
+    logging: *default-logging
+    pull_policy: always
+    environment:
+      TZ: $TZ
+    network_mode: host
+    volumes:
+      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+      - ${TMP_FOLDER}:/tmp/mycroft
+    depends_on:
+      - ovos_core
+  ovos_skill_jokes:
+    <<: *podman
+    container_name: test_ovos_skill_jokes
+    hostname: ovos_skill_jokes
+    restart: unless-stopped
+    image: docker.io/smartgic/ovos-skill-jokes:${VERSION}
+    logging: *default-logging
+    pull_policy: always
+    environment:
+      TZ: $TZ
+    network_mode: host
+    volumes:
+      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+      - ${TMP_FOLDER}:/tmp/mycroft
+    depends_on:
+      - ovos_core

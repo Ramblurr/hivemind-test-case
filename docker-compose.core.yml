@@ -1,0 +1,215 @@
+---
+version: "3.9"
+
+x-podman:
+  &podman
+  userns_mode: keep-id
+  security_opt:
+    - "label=disable"
+
+x-logging:
+  &default-logging
+  driver: json-file
+  options:
+    mode: non-blocking
+    max-buffer-size: 4m
+    max-size: "200m"
+    max-file: "1"
+
+volumes:
+  ovos_models_test:
+    name: ovos_models_test
+    driver: local
+  ovos_vosk_test:
+    name: ovos_vosk_test
+    driver: local
+  ovos_listener_records_test:
+    name: ovos_listener_records_test
+    driver: local
+  ovos_tts_cache_test:
+    name: ovos_tts_cache_test
+    driver: local
+  ovos_nltk_test:
+    name: ovos_nltk_test
+    driver: local
+
+services:
+  ovos_messagebus:
+    <<: *podman
+    container_name: test_ovos_messagebus
+    hostname: ovos_messagebus
+    restart: unless-stopped
+    image: docker.io/smartgic/ovos-messagebus:${VERSION}
+    logging: *default-logging
+    pull_policy: always
+    environment:
+      TZ: $TZ
+    network_mode: host
+    volumes:
+      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft:ro
+      - ${TMP_FOLDER}:/tmp/mycroft
+
+  ########################
+  # Uncomment this service if you want to use the C++ implementation
+  # of the message bus.
+  ########################
+  #ovos_messagebus:
+  #  <<: *podman
+  #  container_name: test_ovos_messagebus
+  #  hostname: ovos_messagebus
+  #  restart: unless-stopped
+  #  image: docker.io/smartgic/ovos-bus-server:${VERSION}
+  #  logging: *default-logging
+  #  pull_policy: always
+  #  environment:
+  #    TZ: $TZ
+  #  network_mode: host
+  #  volumes:
+  #    - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft:ro
+  #    - ${TMP_FOLDER}:/tmp/mycroft
+
+        #ovos_phal:
+        #  <<: *podman
+        #  container_name: test_ovos_phal
+        #  hostname: ovos_phal
+        #  restart: unless-stopped
+        #  image: docker.io/smartgic/ovos-phal:${VERSION}
+        #  logging: *default-logging
+        #  pull_policy: always
+        #  environment:
+        #    PULSE_SERVER: unix:${XDG_RUNTIME_DIR}/pulse/native
+        #    PULSE_COOKIE: /home/${OVOS_USER}/.config/pulse/cookie
+        #    TZ: $TZ
+        #    XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR
+        #  network_mode: host
+        #  devices:
+        #    - /dev/snd
+        #  volumes:
+        #    - ~/.config/pulse/cookie:/home/${OVOS_USER}/.config/pulse/cookie:ro
+        #    - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+        #    - ${TMP_FOLDER}:/tmp/mycroft
+        #    - ${XDG_RUNTIME_DIR}/pipewire-0:${XDG_RUNTIME_DIR}/pipewire-0:ro
+        #    - ${XDG_RUNTIME_DIR}/pulse:${XDG_RUNTIME_DIR}/pulse:ro
+        #  depends_on:
+        #    - ovos_messagebus
+
+        #ovos_phal_admin:
+        #  <<: *podman
+        #  container_name: test_ovos_phal_admin
+        #  hostname: ovos_phal_admin
+        #  restart: unless-stopped
+        #  image: docker.io/smartgic/ovos-phal-admin:${VERSION}
+        #  logging: *default-logging
+        #  pull_policy: always
+        #  environment:
+        #    TZ: $TZ
+        #  network_mode: host
+        #  privileged: true
+        #  volumes:
+        #    - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+        #    - ${TMP_FOLDER}:/tmp/mycroft
+        #    - /sys:/sys:ro
+        #    - /dev:/dev:ro
+        #  depends_on:
+        #    - ovos_messagebus
+
+        #ovos_listener:
+        #  <<: *podman
+        #  container_name: test_ovos_listener
+        #  hostname: ovos_listener
+        #  restart: unless-stopped
+        #  image: docker.io/smartgic/ovos-listener-dinkum:${VERSION}
+        #  logging: *default-logging
+        #  pull_policy: always
+        #  environment:
+        #    PULSE_SERVER: unix:${XDG_RUNTIME_DIR}/pulse/native
+        #    PULSE_COOKIE: /home/${OVOS_USER}/.config/pulse/cookie
+        #    TZ: $TZ
+        #    XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR
+        #  network_mode: host
+        #  devices:
+        #    - /dev/snd
+        #  volumes:
+        #    - ~/.config/pulse/cookie:/home/${OVOS_USER}/.config/pulse/cookie:ro
+        #    - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft:ro
+        #    - ovos_listener_records_test:/home/${OVOS_USER}/.local/share/mycroft/listener
+        #    - ovos_models_test:/home/${OVOS_USER}/.local/share/precise-lite
+        #    - ovos_vosk_test:/home/${OVOS_USER}/.local/share/vosk
+        #    - ${TMP_FOLDER}:/tmp/mycroft
+        #    - ${XDG_RUNTIME_DIR}/pipewire-0:${XDG_RUNTIME_DIR}/pipewire-0:ro
+        #    - ${XDG_RUNTIME_DIR}/pulse:${XDG_RUNTIME_DIR}/pulse:ro
+        #  depends_on:
+        #    - ovos_messagebus
+        #    - ovos_phal
+
+        #ovos_audio:
+        #  <<: *podman
+        #  container_name: test_ovos_audio
+        #  hostname: ovos_audio
+        #  restart: unless-stopped
+        #  image: docker.io/smartgic/ovos-audio:${VERSION}
+        #  logging: *default-logging
+        #  pull_policy: always
+        #  environment:
+        #    DBUS_SESSION_BUS_ADDRESS: unix:path=${XDG_RUNTIME_DIR}/bus
+        #    PULSE_SERVER: unix:${XDG_RUNTIME_DIR}/pulse/native
+        #    PULSE_COOKIE: /home/${OVOS_USER}/.config/pulse/cookie
+        #    TZ: $TZ
+        #    XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR
+        #  network_mode: host
+        #  devices:
+        #    - /dev/snd
+        #  volumes:
+        #    - ~/.config/pulse/cookie:/home/${OVOS_USER}/.config/pulse/cookie:ro
+        #    - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+        #    - ovos_tts_cache_test:/home/${OVOS_USER}/.cache/mycroft
+        #    - ${TMP_FOLDER}:/tmp/mycroft
+        #    - ${XDG_RUNTIME_DIR}/bus:${XDG_RUNTIME_DIR}/bus:ro
+        #    - ${XDG_RUNTIME_DIR}/pipewire-0:${XDG_RUNTIME_DIR}/pipewire-0:ro
+        #    - ${XDG_RUNTIME_DIR}/pulse:${XDG_RUNTIME_DIR}/pulse:ro
+        #  depends_on:
+        #    - ovos_messagebus
+        #    - ovos_phal
+
+  ovos_core:
+    <<: *podman
+    container_name: test_ovos_core
+    hostname: ovos_core
+    restart: unless-stopped
+    image: docker.io/smartgic/ovos-core:${VERSION}
+    logging: *default-logging
+    pull_policy: always
+    environment:
+      PULSE_SERVER: unix:${XDG_RUNTIME_DIR}/pulse/native
+      PULSE_COOKIE: /home/${OVOS_USER}/.config/pulse/cookie
+      TZ: $TZ
+      XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR
+    network_mode: host
+    devices:
+      - /dev/snd
+    volumes:
+      - ~/.config/pulse/cookie:/home/${OVOS_USER}/.config/pulse/cookie:ro
+      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+      - ovos_nltk_test:/home/${OVOS_USER}/nltk_data
+      - ${OVOS_SHARE_FOLDER}:/home/${OVOS_USER}/.local/share/mycroft
+      - ${TMP_FOLDER}:/tmp/mycroft
+      - ${XDG_RUNTIME_DIR}/pipewire-0:${XDG_RUNTIME_DIR}/pipewire-0:ro
+      - ${XDG_RUNTIME_DIR}/pulse:${XDG_RUNTIME_DIR}/pulse:ro
+    depends_on:
+      - ovos_messagebus
+        #- ovos_phal
+
+  ovos_cli:
+    <<: *podman
+    container_name: test_ovos_cli
+    hostname: ovos_cli
+    restart: unless-stopped
+    image: docker.io/smartgic/ovos-cli:${VERSION}
+    logging: *default-logging
+    pull_policy: always
+    environment:
+      TZ: $TZ
+    network_mode: host
+    volumes:
+      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+      - ${TMP_FOLDER}:/tmp/mycroft
