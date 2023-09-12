@@ -13,8 +13,8 @@ cd hivemind-test-case
 # look at the logs
 ./run.sh logs -f
 
-# try speaking
-./run.sh exec ovos_core "ovos-speak hello"
+# try speaking * from the satellite
+./run.sh exec hivemind_satellite "ovos-speak hello"
 
 # cleanup
 ./run.sh down -v
